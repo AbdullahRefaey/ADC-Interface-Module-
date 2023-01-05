@@ -1,0 +1,60 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: UCD
+// Engineer: Refaey
+// 
+// Create Date: 12/03/2018 10:06:23 AM
+// Module Name: ADC Interface
+// Project Name: ADC
+// Target Devices: XC7A-200T
+// Revision 0.01 - File Created
+// Description:
+
+
+//////////////////////////////////////////////////////////////////////////////////
+
+module adc_interface(
+  input clk,
+  input rst,
+  input adc_conv_done,
+  input [15:0] adc_data,
+  output reg adc_rdy,
+  output reg [15:0] adc_out
+);
+
+reg [2:0] state;
+
+// Constants for the states
+parameter IDLE = 3'b000,
+          DATA_TRANSFER = 3'b001;
+
+// Initialize state registers
+always @(posedge clk or negedge rst) begin
+  if (~rst) begin
+    state <= IDLE;
+  end else begin
+    state <= state;
+  end
+end
+
+// ADC interface state machine
+always @(posedge clk) begin
+  case (state)
+    IDLE: begin
+      adc_rdy <= 0;
+      if (adc_conv_done) begin
+        state <= DATA_TRANSFER;
+      end
+    end
+    DATA_TRANSFER: begin
+      adc_rdy <= 1;
+      adc_out <= adc_data;
+      state <= IDLE;
+    end
+  endcase
+end
+
+endmodule
+
+
+//Done
