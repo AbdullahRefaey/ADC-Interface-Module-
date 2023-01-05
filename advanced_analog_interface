@@ -1,3 +1,13 @@
+This advanced analog interface module has five input and output ports:
+
+clk: This is the clock input, which is used to synchronize the operation of the advanced analog interface.
+rst: This is the reset input, which is used to reset the internal state of the advanced analog interface.
+analog_in: This is an input port that is used to receive the external analog signal. The analog_in port is a 16-bit port, so it can receive a 16-bit analog input.
+analog_out: This is an output port that is used to transfer the sampled analog signal to the rest of the system.
+adc_rdy: This is an output port that is used to indicate when the advanced analog interface is ready to transfer data. When adc_rdy is 1, the advanced analog interface is ready to transfer the sampled analog signal to the analog_out output port.
+The module uses a finite state machine (FSM) to control the sampling and transfer of the analog signal. The FSM has three states: IDLE, SAMPLING, and `DATA_TRANSFER
+
+/////////////////////////////////////////
 module advanced_analog_interface(
   input clk,
   input rst,
