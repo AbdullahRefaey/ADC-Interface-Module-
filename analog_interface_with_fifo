@@ -1,0 +1,72 @@
+This module is to store the output of the analog interface module in a FIFO. The analog interface module with FIFO is a modified version of the analog interface module that was provided in the previous answer. 
+The main difference is that this module has a FIFO buffer that can store the sampled analog signal before it is transferred to the rest of the system.
+
+It has seven input and output ports:
+clk: This is the clock input, which is used to synchronize the operation of the module.
+rst: This is the reset input, which is used to reset the internal state of the module.
+analog_in: This is an input port that is used to receive the external analog signal.
+analog_out: This is an output port that is used to transfer the sampled analog signal to the rest of the system.
+adc_rdy: This is an output port that is used to indicate when the module is ready to transfer data.
+fifo_empty: This is an output port that is used to indicate whether the FIFO buffer is empty or not.
+fifo_write_en: This is an input port that is used to enable writing to the FIFO buffer.
+fifo_data_in: This is an output port that is used to write the sampled analog signal to the FIFO buffer.
+The module has an internal state machine that controls the flow of data. When the module is idle, it waits for a new sample to be available. 
+When a new sample is available, it is stored in the sample_reg register and the state machine transitions to the data transfer state. 
+In the data transfer state, the sampled analog signal is transferred to the analog_out output port and to the FIFO buffer (if fifo_write_en is 1). 
+Finally, the state machine returns to the idle state and waits for the next sample.
+
+///////////////////////////////////////////////////////////////
+
+module analog_interface_with_fifo(
+  input clk,
+  input rst,
+  input analog_in,
+  output reg [15:0] analog_out,
+  output reg adc_rdy,
+  output reg fifo_empty,
+  input fifo_write_en,
+  output reg [15:0] fifo_data_in
+);
+
+reg [15:0] sample_reg;
+reg [2:0] state;
+
+// Constants for the states
+parameter IDLE = 3'b000,
+          SAMPLING = 3'b001,
+          DATA_TRANSFER = 3'b010;
+
+// Initialize state registers
+always @(posedge clk or negedge rst) begin
+  if (~rst) begin
+    state <= IDLE;
+  end else begin
+    state <= state;
+  end
+end
+
+// ADC interface state machine
+always @(posedge clk) begin
+  case (state)
+    IDLE: begin
+      adc_rdy <= 0;
+      fifo_empty <= 1;
+      state <= SAMPLING;
+    end
+    SAMPLING: begin
+      sample_reg <= analog_in;
+      state <= DATA_TRANSFER;
+    end
+    DATA_TRANSFER: begin
+      adc_rdy <= 1;
+      analog_out <= sample_reg;
+      if (fifo_write_en) begin
+        fifo_empty <= 0;
+        fifo_data_in <= sample_reg;
+      end
+      state <= IDLE;
+    end
+  endcase
+end
+
+endmodule
